@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realtime update</title>
+    <link href="./styles/index.css" rel="styleSheet"/>
+    <script src="./src/app.js" defer></script>
+</head>
+<body>
+   <header>
+    <nav>
+        <ul>
+            
+            <li>Dashboard</li>
+        </ul>
+    </nav>
+   </header>
+
+   <main>
+        <section class="userDetails">
+            <h1>User Details</h1>
+        </section>
+        <hr>
+        <section >
+            <h1>
+                Add User
+            </h1>
+
+            <form class="userForm">
+                <label for="username">
+                    <span>Username</span>
+                    <input type="text" id="username" name="username" required>
+                    <p id="usernameError"></p>
+                </label>
+                 <label for="email">
+                    <span>Email</span>
+                    <input type="email" id="email" name="email" required>
+                    <p id="emailError"></p>
+                </label>
+                 <label for="password">
+                    <span>Password</span>
+                    <input type="password" id="password" name="password" required>
+                    <p id="passwordError"></p>
+                </label>
+                <input type="submit" value="SUBMIT">
+            </form>
+        </section>
+   </main>
+</body>
+</html>
