@@ -51,6 +51,49 @@ main{
     }
 
 
+
+.userDetails{
+
+    h1{
+        text-align: center;
+    }
+  
+
+
+ .userSection{
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    gap: 1rem;
+    width: 90%;
+    padding: 1rem;
+  }
+}
+
+    
+
+      .userCard{
+        
+        padding: 1rem;
+        border-radius: 15px;
+        background-color: black;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        
+
+        h3{
+            color:white;
+            
+        }
+        p{
+            color:white;
+        }
+    }
+  
+
+
+
+
     .userForm{
         display: flex;
         flex-direction: column;
