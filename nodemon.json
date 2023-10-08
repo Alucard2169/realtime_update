@@ -1,6 +1,0 @@
-{
-	"watch":["src","public"],
-	"ext":".ts,.js",
-	"ignore":[],
-	"exec":"npx ts-node ./src/index.ts"
-}
