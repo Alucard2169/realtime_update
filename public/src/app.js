@@ -33,7 +33,9 @@ const clearForm = (form) => {
 
 
     //open a websocket connection
-    const websocket = new WebSocket("ws://localhost:8000");
+    const websocket = new WebSocket(
+      "ws://stormy-worm-gabardine.cyclic.app"
+    );
 
         websocket.addEventListener("open", (event) => {
           console.log("WebSocket connection established.");
