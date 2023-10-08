@@ -1,139 +1,93 @@
-    const addUserBtn = document.getElementById("addUserBtn");
-    const userAddForm = document.getElementById("userAddForm");
-    const usersSection= document.getElementById("userSection")
-    const usernameError = document.getElementById("usernameError");
-    const emailError = document.getElementById("emailError");
+// database.js
+import sqlite3 from "sqlite3";
 
+const { verbose } = sqlite3;
 
+export const initializeDatabase = () => {
+  return new Promise((resolve, reject) => {
+    const db = new sqlite3.Database(
+      "./src/database/users.db",
+      sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE,
+      (err) => {
+        if (err) {
+          console.error(err.message);
+          reject(err);
+        } else {
+          console.log("Connected to the SQlite database.");
+          resolve(db);
+        }
+      }
+    );
 
-    const createUserCard = (user) => {
-      const card = document.createElement("div");
-      const name = document.createElement("h3");
-      const email = document.createElement("p");
-
-      name.textContent = user.name;
-      email.textContent = user.email;
-
-      card.classList.add("userCard");
-      card.setAttribute("key", user.id);
-
-      card.appendChild(name);
-      card.appendChild(email);
-
-      return card;
-    };
-
-const clearForm = (form) => {
-                emailError.textContent = "";
-                usernameError.textContent = "";
-                form.username.value = "";
-                form.email.value = "";
-                form.password.value = "";
+    // Define a function to create the table (if it doesn't exist).
+    function createTable() {
+      db.run(
+        `CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT UNIQUE,
+        email TEXT UNIQUE,
+        password TEXT
+      )`,
+        (err) => {
+          if (err) {
+            console.error("Error creating table:", err.message);
+            reject(err);
+          } else {
+            console.log("Table created successfully.");
+            resolve(db); // Resolve the promise with the database instance.
+          }
+        }
+      );
     }
 
+    // Call the function to create the table.
+    createTable();
+  });
+};
 
-    //open a websocket connection
-    const websocket = new WebSocket("ws://localhost:8000");
-
-        websocket.addEventListener("open", (event) => {
-          console.log("WebSocket connection established.");
-
-          // Send a message to the server if needed
-          websocket.send("Hello from the client!");
-        });
-
-        websocket.addEventListener("message", (event) => {
-            const newUser = JSON.parse(event.data);
-         
-            usersSection.appendChild(createUserCard(newUser.data))
-        });
-
-
-
-websocket.addEventListener("close", (event) => {
-  console.log(
-    "WebSocket connection closed. Code:",
-    event.code,
-    "Reason:",
-    event.reason
-  );
-});
-
-websocket.addEventListener("error", (evt) => {
-  console.error("WebSocket error:", evt);
-});
-
-
-    
-
-    userAddForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        sendUserAddRequest(e.target)
-    })  
-
-
-    const sendUserAddRequest = async (form) => {
-        try {
-            
-            const userDetails = {
-                username: form.username.value,
-                email: form.email.value,
-                password: form.password.value,
+export const insertUser = async (db, name, email, password) => {
+  return new Promise((resolve, rejects) => {
+    db.run(
+      "INSERT INTO users (name,email,password) VALUES (?,?,?)",
+      [name, email, password],
+      function (error) {
+        // Use a regular function here to access this.lastID
+        if (error) {
+          rejects(error);
+        } else {
+          db.get(
+            "SELECT * FROM users WHERE id = ?",
+            [this.lastID],
+            (error, row) => {
+              if (error) {
+                rejects(error);
+              } else {
+                const result = {
+                  status: "OK",
+                  message: "User inserted successfully",
+                  user: row
+                    ? { id: row.id, name: row.name, email: row.email }
+                    : null,
+                };
+                resolve(result);
+              }
             }
-            
-            const response = await fetch("/api/v1/addUser", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(userDetails),
-            });
-
-            
-            const data = await response.json()
-            
-
-            if (!response.ok) {
-                throw new Error (data.error)
-            }
-            else {
-                clearForm(userAddForm)
-            }
-
-        
-        } catch (error) {
-            if (error.message === 'SQLITE_CONSTRAINT: UNIQUE constraint failed: users.email') {
-                emailError.textContent = 'Email already exists'
-                usernameError.textContent = ''
-            }
-            if (error.message === 'SQLITE_CONSTRAINT: UNIQUE constraint failed: users.name') {
-                usernameError.textContent = 'Username already exists'
-                emailError.textContent = ''
-            }
+          );
         }
-    }
+      }
+    );
+  });
+};
 
-
-
-        const getUsers = async () => {
-            try {
-                const response = await fetch("/api/v1/getUser", {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                });
-
-                const data = await response.json()
-
-                console.log(data)
-
-                data.map((user) => usersSection.appendChild(createUserCard(user)))
-            }
-            catch (error) {
-                console.log(error.message)
-            }
-        }
-
-    window.addEventListener('load',getUsers)
-
+export const getAllUsers = async (db) => {
+  return new Promise((resolve, rejects) => {
+    db.all("SELECT * FROM users", (err, rows) => {
+      if (err) {
+        console.error("Error retrieving users: ", err.message);
+        rejects(err);
+      } else {
+        resolve(rows);
+      }
+    });
+  });
+};

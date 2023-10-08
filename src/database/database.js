@@ -1,109 +1,93 @@
-import pgPromise from "pg-promise";
+// database.js
 import sqlite3 from "sqlite3";
 
 const { verbose } = sqlite3;
-const pgp = pgPromise();
 
-const isProduction = process.env.NODE_ENV === "production";
-
-const db = isProduction
-  ? pgp(process.env.CYCLIC_DB || "postgres://localhost:5432/mylocaldb")
-  : new sqlite3.Database(
+export const initializeDatabase = () => {
+  return new Promise((resolve, reject) => {
+    const db = new sqlite3.Database(
       "./src/database/users.db",
       sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE,
       (err) => {
         if (err) {
           console.error(err.message);
+          reject(err);
         } else {
           console.log("Connected to the SQlite database.");
+          resolve(db);
         }
       }
     );
 
-export const initializeDatabase = async () => {
-  if (isProduction) {
-    await db.none(`CREATE TABLE IF NOT EXISTS users (
-      id SERIAL PRIMARY KEY,
-      name TEXT UNIQUE,
-      email TEXT UNIQUE,
-      password TEXT
-    )`);
-  } else {
-    db.run(
-      `CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT UNIQUE,
-      email TEXT UNIQUE,
-      password TEXT
-    )`,
-      (err) => {
-        if (err) {
-          console.error("Error creating table:", err.message);
-        } else {
-          console.log("Table created successfully.");
-        }
-      }
-    );
-  }
-};
-
-export const insertUser = async (name, email, password) => {
-  if (isProduction) {
-    console.log(name, email,password)
-    const user = await db.one(
-      "INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *",
-      [name, email, password]
-    );
-    return { status: "OK", message: "User inserted successfully", user };
-  } else {
-    return new Promise((resolve, reject) => {
-          console.log(name, email, password);
+    // Define a function to create the table (if it doesn't exist).
+    function createTable() {
       db.run(
-        "INSERT INTO users (name,email,password) VALUES (?,?,?)",
-        [name, email, password],
-        function (error) {
-          if (error) {
-            reject(error);
+        `CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT UNIQUE,
+        email TEXT UNIQUE,
+        password TEXT
+      )`,
+        (err) => {
+          if (err) {
+            console.error("Error creating table:", err.message);
+            reject(err);
           } else {
-            db.get(
-              "SELECT (id,name,email) FROM users WHERE id = ?",
-              [this.lastID],
-              (error, row) => {
-                if (error) {
-                  reject(error);
-                } else {
-                  const result = {
-                    status: "OK",
-                    message: "User inserted successfully",
-                    user: row
-                      ? { id: row.id, name: row.name, email: row.email }
-                      : null,
-                  };
-                  resolve(result);
-                }
-              }
-            );
+            console.log("Table created successfully.");
+            resolve(db); // Resolve the promise with the database instance.
           }
         }
       );
-    });
-  }
+    }
+
+    // Call the function to create the table.
+    createTable();
+  });
 };
 
-export const getAllUsers = async () => {
-  if (isProduction) {
-    const users = await db.any("SELECT (id,name,email) FROM users");
-    return users;
-  } else {
-    return new Promise((resolve, reject) => {
-      db.all("SELECT (id,name,email) FROM users", (err, rows) => {
-        if (err) {
-          console.error("Error retrieving users: ", err.message);
-          reject(err);
+export const insertUser = async (db, name, email, password) => {
+  return new Promise((resolve, rejects) => {
+    db.run(
+      "INSERT INTO users (name,email,password) VALUES (?,?,?)",
+      [name, email, password],
+      function (error) {
+        // Use a regular function here to access this.lastID
+        if (error) {
+          rejects(error);
         } else {
-          resolve(rows);
+          db.get(
+            "SELECT * FROM users WHERE id = ?",
+            [this.lastID],
+            (error, row) => {
+              if (error) {
+                rejects(error);
+              } else {
+                const result = {
+                  status: "OK",
+                  message: "User inserted successfully",
+                  user: row
+                    ? { id: row.id, name: row.name, email: row.email }
+                    : null,
+                };
+                resolve(result);
+              }
+            }
+          );
         }
-      });
+      }
+    );
+  });
+};
+
+export const getAllUsers = async (db) => {
+  return new Promise((resolve, rejects) => {
+    db.all("SELECT * FROM users", (err, rows) => {
+      if (err) {
+        console.error("Error retrieving users: ", err.message);
+        rejects(err);
+      } else {
+        resolve(rows);
+      }
     });
-  }
+  });
 };
