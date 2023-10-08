@@ -34,7 +34,7 @@ const clearForm = (form) => {
 
     //open a websocket connection
     const websocket = new WebSocket(
-      "ws://stormy-worm-gabardine.cyclic.app"
+      process.env.CYCLIC_URL || "ws://localhost:8000"
     );
 
         websocket.addEventListener("open", (event) => {
@@ -83,13 +83,16 @@ websocket.addEventListener("error", (evt) => {
                 password: form.password.value,
             }
             
-            const response = await fetch("/api/v1/addUser", {
+            const response = await fetch(
+              `${process.env.CYCLIC_URL}/api/v1/addUser`,
+              {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
+                  "Content-Type": "application/json",
                 },
                 body: JSON.stringify(userDetails),
-            });
+              }
+            );
 
             
             const data = await response.json()
@@ -119,12 +122,15 @@ websocket.addEventListener("error", (evt) => {
 
         const getUsers = async () => {
             try {
-                const response = await fetch("/api/v1/getUser", {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                });
+                const response = await fetch(
+                  `${process.env.CYCLIC_URL}/api/v1/getUser`,
+                  {
+                    method: "GET",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                  }
+                );
 
                 const data = await response.json()
 
