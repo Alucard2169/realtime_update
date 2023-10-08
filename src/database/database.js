@@ -49,6 +49,7 @@ export const initializeDatabase = async () => {
 
 export const insertUser = async (name, email, password) => {
   if (isProduction) {
+    console.log(name, email,password)
     const user = await db.one(
       "INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *",
       [name, email, password]
@@ -56,6 +57,7 @@ export const insertUser = async (name, email, password) => {
     return { status: "OK", message: "User inserted successfully", user };
   } else {
     return new Promise((resolve, reject) => {
+          console.log(name, email, password);
       db.run(
         "INSERT INTO users (name,email,password) VALUES (?,?,?)",
         [name, email, password],
@@ -64,7 +66,7 @@ export const insertUser = async (name, email, password) => {
             reject(error);
           } else {
             db.get(
-              "SELECT * FROM users WHERE id = ?",
+              "SELECT (id,name,email) FROM users WHERE id = ?",
               [this.lastID],
               (error, row) => {
                 if (error) {
@@ -90,11 +92,11 @@ export const insertUser = async (name, email, password) => {
 
 export const getAllUsers = async () => {
   if (isProduction) {
-    const users = await db.any("SELECT * FROM users");
+    const users = await db.any("SELECT (id,name,email) FROM users");
     return users;
   } else {
     return new Promise((resolve, reject) => {
-      db.all("SELECT * FROM users", (err, rows) => {
+      db.all("SELECT (id,name,email) FROM users", (err, rows) => {
         if (err) {
           console.error("Error retrieving users: ", err.message);
           reject(err);
