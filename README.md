@@ -1,12 +1,12 @@
 # realtime_update
 
-> Realtime Update is a fun project that shows real-time database inserts
+* > Realtime Update is a fun project that shows real-time database inserts
 
-> It uses SQLite as a database
-> 
-> Uses Websocket to open real-time connections
+* > It uses SQLite as a database
 
-> Uses NodeJS as a server.
+* > Uses Websocket to open real-time connections
+
+* > Uses NodeJS as a server.
 
 --- 
 
