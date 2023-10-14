@@ -1,7 +1,12 @@
 # realtime_update
 
-> uses websockets to show realtime db inserts without reloads
-> Uses sqlite as database
+> Realtime Update is a fun project that shows real-time database inserts
+
+> It uses SQLite as a database
+> 
+> Uses Websocket to open real-time connections
+
+> Uses NodeJS as a server.
 
 --- 
 
@@ -19,4 +24,5 @@
 ```
 
 > goto **localhost:8000**
+
  
